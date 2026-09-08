@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 주막 🍶 - 막걸리 & 안주 추천</title>
+    <style>
+/* 카드 전체를 감싸는 통 */
+.flavor-cards-container {
+    display: flex;
+    justify-content: flex-start; /* 👈 center를 flex-start(왼쪽 정렬)로 변경! */
+    gap: 10px; 
+    margin-top: 15px; /* 👈 지역 입력칸과 너무 붙지 않게 위쪽 여백 추가 */
+    margin-bottom: 20px;
+}
+
+/* 카드 1개의 디자인 */
+.flavor-card {
+    display: flex;
+    flex-direction: column; /* 위에서 아래로 배치 (이모지 위, 글씨 아래) */
+    align-items: center; /* 가운데 정렬 */
+    width: 90px; /* 카드 너비 */
+    padding: 15px 5px;
+    border: 2px solid #e0e0e0; /* 연한 회색 테두리 */
+    border-radius: 12px; /* 둥근 모서리 */
+    background-color: white;
+    cursor: pointer; /* 마우스 올리면 손가락 모양 */
+    transition: all 0.2s ease; /* 부드러운 애니메이션 */
+}
+
+/* 마우스 올렸을 때 살짝 위로 뜨는 효과 */
+.flavor-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* 이모지 크기 키우기 */
+.flavor-card .emoji {
+    font-size: 35px; 
+    margin-bottom: 8px;
+}
+
+/* 텍스트 디자인 */
+.flavor-card .text {
+    font-size: 13px;
+    color: #555;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* 🌟 카드가 선택되었을 때의 디자인 🌟 */
+.flavor-card.selected {
+    border: 2px solid #8b4513; /* 주막 느낌 짙은 갈색 테두리 */
+    background-color: #fff3cd; /* 노란색 배경 */
+}
+
+.flavor-card.selected .text {
+    font-weight: bold;
+    color: #8b4513;
+}
+
+body {
+    /* 기존에 있던 코드들(예: font-family 등)은 그대로 두시고 아래 내용을 추가/수정해 주세요! */
+    
+    max-width: 600px; /* 1. 전체 내용이 너무 넓게 퍼지지 않게 가로 길이를 제한합니다. */
+    margin: 0 auto;   /* 2. ⭐️핵심⭐️ 양쪽 여백을 똑같이 나눠 가져서 전체를 화면 '가운데'로 보냅니다! */
+    padding: 40px 20px; /* 3. 위아래, 양옆으로 숨 쉴 틈(여백)을 줍니다. */
+}
+
+/* 1. 입력칸(텍스트 박스) 예쁘게 만들기 */
+input[type="text"] {
+    width: 100%; /* 가로 길이를 꽉 채워줍니다 */
+    padding: 12px; /* 안쪽 여백을 줘서 통통하게 만듭니다 */
+    margin-bottom: 15px; /* 아래쪽 요소와 간격을 띄웁니다 */
+    border: 1px solid #ddd; /* 테두리를 연한 회색으로 칠합니다 */
+    border-radius: 8px; /* 모서리를 둥글게 깎아줍니다 */
+    box-sizing: border-box; /* 크기 계산을 딱 맞게 해주는 마법의 코드 */
+    font-size: 15px;
+}
+
+/* 2. 버튼 예쁘게 만들기 */
+button {
+    width: 100%; /* 버튼도 가로로 꽉 채워줍니다 */
+    padding: 15px;
+    background-color: #d97736; /* 주막 느낌이 나는 주황/갈색 톤 */
+    color: white; /* 글씨는 흰색 */
+    border: none; /* 촌스러운 기본 테두리 없애기 */
+    border-radius: 8px; /* 모서리 둥글게 */
+    font-size: 16px;
+    font-weight: bold; /* 글씨 굵게 */
+    cursor: pointer; /* 마우스 올리면 손가락 모양으로 변경 */
+    margin-bottom: 30px;
+}
+
+/* 버튼에 마우스 올렸을 때 살짝 어두워지는 효과 */
+button:hover {
+    background-color: #bf6329;
+}
+
+/* 1. 제목(h3) 가운데 정렬 추가 */
+h3 {
+    font-size: 22px; 
+    margin-top: 30px;
+    margin-bottom: 15px;
+    text-align: center; /* 👈 이 마법의 한 줄을 추가해 주세요! */
+}
+
+/* 2. 제목 위아래에 있는 설명글(p)도 모두 가운데 정렬 */
+p {
+    text-align: center; /* 👈 설명글도 가운데로 맞춰줍니다 */
+    margin-bottom: 20px;
+}
+
+/* 2. 맛 카드 배열 널널하게 펴주기 (기존 .flavor-cards-container가 있다면 이걸로 덮어쓰세요!) */
+.flavor-cards-container {
+    display: flex;
+    justify-content: space-between; /* 양끝을 버튼 너비에 딱 맞게 쫙 펴줍니다 */
+    gap: 8px; /* 카드 사이의 간격 */
+    margin-bottom: 20px;
+}
+
+/* 카드가 5개가 되었으므로, 각각의 카드가 동일한 비율로 예쁘게 줄어들도록 설정 */
+.flavor-card {
+    flex: 1; /* 5개 카드가 1:1:1:1:1 비율로 공간을 나눠 가짐 */
+    padding: 15px 5px; /* 글씨가 안 잘리도록 좌우 여백을 살짝 줄임 */
+    /* (나머지 border, border-radius, cursor, text-align 등 기존 코드는 그대로 두세요!) */
+}
+
+/* 메인 제목(h1, h2) 가운데 정렬 */
+h1, h2 {
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+
+    <!-- [섹션 1] 서비스 소개 -->
+    <section id="intro">
+        <h1>오늘의 주막 🍶</h1>
+        <p>오늘 밤, 당신의 취향을 저격할<br>동네 막걸리와 찰떡 안주를 찾아드려요!</p>
+    </section>
+
+    <!-- [섹션 2] AI 추천 기능 (입력 및 결과) -->
+    <section id="ai-feature">
+        <h3>어떤 막걸리를 찾으시나요?</h3>
+        
+        <!-- 지역 입력칸 -->
+        <input type="text" id="region-input" placeholder="예: 서울, 부산, 제주도">
+        
+        <!-- 맛 선택칸 (앱 스타일 카드형) -->
+        <div class="flavor-cards-container">
+            <div class="flavor-card" data-value="달달한 맛">
+                <div class="emoji">🍯</div>
+                <div class="text">달달하고<br>부드러운 맛</div>
+            </div>
+            <div class="flavor-card" data-value="새콤한 맛">
+                <div class="emoji">🍋</div>
+                <div class="text">새콤하고<br>산뜻한 맛</div>
+            </div>
+            <div class="flavor-card" data-value="탄산이 강한 맛">
+                <div class="emoji">⚡</div>
+                <div class="text">탄산이<br>톡 쏘는 맛</div>
+            </div>
+            <!-- 👇 3. 문구 수정됨 -->
+            <div class="flavor-card" data-value="담백한 맛">
+                <div class="emoji">🌰</div>
+                <div class="text">담백한 쌀과<br>누룩의 풍미</div>
+            </div>
+            <!-- 👇 3. 새로운 맛 추가! -->
+            <div class="flavor-card" data-value="크리미한 맛">
+                <div class="emoji">🥛</div>
+                <div class="text">걸쭉하고<br>크리미한 맛</div>
+            </div>
+        </div>
+
+    <!-- 마법의 숨김 태그 (그대로 유지) -->
+    <input type="hidden" id="taste-input" value="달달한 맛">
+
+    
+        <!-- 추천 버튼 -->
+        <button id="recommend-btn">주모! 추천해 주시오 🛎️</button>
+
+        <!-- 버튼 아래에 이 코드를 추가하세요 -->
+        <div id="result-box" style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 8px; display: none; white-space: pre-wrap; line-height: 1.6;"></div>
+    </section>
+
+    <!-- [섹션 3] 제보하기 폼 -->
+    <section id="report-form">
+        <h3>나만의 인생 막걸리 제보하기 ✍️</h3>
+        <p>AI도 모르는 숨겨진 명주가 있다면 알려주세요!</p>
+        <input type="text" id="report-name" placeholder="막걸리 이름">
+        <input type="text" id="report-food" placeholder="어울리는 안주">
+        <button id="report-btn">제보하기</button>
+        <!-- 👇 부모 박스(div) 전체를 가운데 정렬합니다 -->
+        <div style="margin-top: 20px; text-align: center;">
+            <h3>📝 주모의 비밀 장부 (오늘의 제보)</h3>
+    
+            <!-- 👇 ul 태그를 '블록'으로 만들어서 가운데로 오게 하고, 내부 글자는 왼쪽(left) 정렬! -->
+            <ul id="report-list" style="list-style: none; padding: 0; display: inline-block; text-align: left;">
+                <!-- 자바스크립트가 여기에 리스트를 추가합니다 -->
+            </ul>
+        </div>
+
+
+    </section>
+
+        <!-- [여기서부터 추가!] 자바스크립트 코드 -->
+<script>
+    // ==========================================
+    // 1. [새로 추가된 부분] 카드형 맛 선택 기능
+    // ==========================================
+    const cards = document.querySelectorAll('.flavor-card');
+    const hiddenInput = document.getElementById('taste-input');
+
+    // 처음 시작할 때 첫 번째 카드(달달한 맛)가 선택되어 있게 만들기
+    cards[0].classList.add('selected');
+    // [중요] 시작할 때 숨겨진 주머니에도 첫 번째 맛을 미리 넣어둡니다!
+    hiddenInput.value = cards[0].getAttribute('data-value');
+
+    // 각각의 카드를 클릭했을 때 일어날 일 설정
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+        
+            // 1. 이미 선택된 카드를 다시 누른 경우 -> 선택 해제 (색상 빼기)
+            if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            } 
+            // 2. 선택 안 된 카드를 누른 경우 -> 선택 추가 (색상 넣기)
+            else {
+                // 현재 선택된 카드가 몇 개인지 셉니다.
+                const selectedCount = document.querySelectorAll('.flavor-card.selected').length;
+            
+                // 3개가 이미 찼다면 경고창을 띄우고 더 이상 진행하지 않음!
+                if (selectedCount >= 3) {
+                    alert("아이고 손님! 맛은 최대 3개까지만 고를 수 있소!");
+                    return; 
+                }
+            
+                // 3개가 안 넘었다면 선택 디자인 넣기
+                this.classList.add('selected');
+            }
+
+        // 3. 숨겨진 주머니(hiddenInput) 업데이트 하기
+        // 현재 'selected' 클래스가 붙은 카드들을 모두 모아서 배열로 만듭니다.
+        const selectedCards = document.querySelectorAll('.flavor-card.selected');
+        const selectedValues = Array.from(selectedCards).map(c => c.getAttribute('data-value'));
+        
+        // 모은 맛들을 쉼표(,)로 연결해서 주머니에 쏙 넣습니다. (예: "달달한 맛, 고소한 맛")
+        hiddenInput.value = selectedValues.join(', ');
+    });
+});
+
+    // ==========================================
+    // 2. [기존 코드] AI 추천 기능 (수정 완료!)
+    // ==========================================
+    const recommendBtn = document.querySelector('button');
+    const regionInput = document.querySelector('input[type="text"]');
+    
+    // 🚨 수정된 부분: 이제 select가 아니라 id가 'taste-input'인 숨김 태그를 가져옵니다!
+    const tasteSelect = document.getElementById('taste-input'); 
+    const resultBox = document.getElementById('result-box');
+
+    recommendBtn.addEventListener('click', function() {
+        const region = regionInput.value;
+        const taste = tasteSelect.value;
+
+        // 🚨 수정된 부분: 이제 맛은 무조건 하나가 선택되어 있으므로, 지역(region) 빈칸만 검사합니다.
+        if (region === "") {
+            alert("어느 지역의 막걸리를 찾으시는지 알려주시오!");
+            return;
+        }
+
+        // 로딩 중 표시하기
+        recommendBtn.innerText = "주모가 막걸리 찾는 중... ⏳";
+        resultBox.style.display = "block"; 
+        resultBox.innerText = "주모가 곰곰이 생각하고 있소. 잠시만 기다려 주시오...";
+
+        // Flask 서버로 데이터 보내기
+        fetch('/api/recommend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ region: region, taste: taste }) 
+        })
+        .then(response => response.json()) 
+        .then(data => {
+            // AI 주모의 답변을 결과창에 띄우기
+            resultBox.innerHTML = data.result; 
+            recommendBtn.innerText = "주모! 추천해 주시오 🔔"; 
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultBox.innerText = "아이고, 주막에 불이 났소! (에러 발생)";
+            recommendBtn.innerText = "주모! 추천해 주시오 🔔";
+        });
+        
+    });
+        
+        // --- 제보하기 버튼 기능 ---
+        const reportBtn = document.getElementById('report-btn');
+        const reportName = document.getElementById('report-name');
+        const reportFood = document.getElementById('report-food');
+        const reportList = document.getElementById('report-list'); // 👈 리스트 공간 찾기
+
+        // 👇 1. 제보 횟수를 기억할 변수를 하나 만듭니다. (처음엔 0개)
+        let reportCount = 0; 
+
+        reportBtn.addEventListener('click', function() {
+            if (reportName.value === '' || reportFood.value === '') {
+                alert('아이고 손님! 막걸리 이름과 안주를 모두 적어주시지요!');
+                return; 
+            }
+
+            alert(`고맙소! [${reportName.value}]와(과) [${reportFood.value}] 조합이라니, 주모가 잘 기억해 두겠소! 📝`);
+
+            // 👇 2. 제보가 성공할 때마다 숫자를 1씩 증가시킵니다.
+            reportCount++; 
+
+            const newItem = document.createElement('li'); 
+    
+            // 👇 3. 글자 앞에 숫자가 들어가도록 수정합니다. (예: 1. 🍶 지평 + 🍽️ 순대)
+            newItem.innerText = `${reportCount}. 🍶 ${reportName.value} + 🍽️ ${reportFood.value}`; 
+    
+            newItem.style.marginBottom = "10px"; 
+            reportList.appendChild(newItem); 
+
+            reportName.value = '';
+            reportFood.value = '';
+        });
+
+</script>
+
+</body>
+</html>    
