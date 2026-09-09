@@ -1,7 +1,7 @@
-import requests
+import os # 파일 맨 위에 os 모듈이 import 되어 있어야 합니다.
 
-# 1. 교육장 API 키 입력 (본인의 sk-cody-live-... 키로 끝까지 다 채워주세요!)
-api_key = "sk-cody-live-a_UeEVsWjEZvd4ub9hha3S_4f9wnEfmaNdEMYUHNyTw" 
+# os.environ.get()을 사용해 환경변수에서 키를 불러옵니다.
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) 
 
 # 2. 임시 데이터
 region = "제주도"
