@@ -1,8 +1,8 @@
 import os
-import requests # requests 모듈이 꼭 import 되어야 합니다!
+from dotenv import load_dotenv
 
-# ❌ 아래 코드는 지워주세요! (requests 방식을 쓰기 때문에 필요 없습니다)
-# client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) 
+load_dotenv() # .env 파일에서 키를 불러옵니다.
+api_key = os.environ.get('OPENAI_API_KEY') 
 
 # 1. 임시 데이터
 region = "제주도"
