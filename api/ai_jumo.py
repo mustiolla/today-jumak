@@ -1,4 +1,6 @@
 import os
+import requests
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 load_dotenv() # .env 파일에서 키를 불러옵니다.
