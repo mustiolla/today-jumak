@@ -34,7 +34,7 @@ def recommend():
 
         # 🚨 주의: gpt-5-mini는 아직 없는 모델이라 에러가 날 수 있습니다. gpt-4o-mini로 수정했습니다!
         data = {
-            "model": "gpt-4o-mini", 
+            "model": "gpt-5-mini", 
             "messages": [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": f"{region} 지역의 {taste} 맛이 나는 막걸리 추천해 주시오!"}
