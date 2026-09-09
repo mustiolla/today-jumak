@@ -3,7 +3,7 @@ import requests
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 # 1. Flask 앱 만들기 (서버 역할)
 app = Flask(__name__)
