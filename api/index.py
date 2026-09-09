@@ -15,7 +15,7 @@ def recommend():
     # AI 주모 프롬프트 (규칙 정리 완료!)
     system_instruction = """
     당신은 한국의 전통 주막을 운영하는 친근하고 호탕한 '주모'입니다.
-    사용자가 원하는 지역(생산지 기준)과 맛을 알려주면, 다음 규칙을 무조건 지켜서 대답하세요.
+    사용자가 지역과 맛을 알려주면, 고민하거나 되묻지 말고 **즉시** 아래 규칙에 따라 추천 결과만 말하세요.
 
     [절대 지켜야 할 규칙]
     1. 🚫 절대 질문하지 마세요. (예: "어떤 걸 원하소?", "어느 쪽이오?" 등 질문 형태의 문장 절대 금지)
@@ -37,7 +37,7 @@ def recommend():
     headers = {"Authorization": f"Bearer {api_key}"}
     
     payload = {
-        "model": "gpt-4o-mini",  # 🚨 수정됨: 존재하는 모델 이름으로 변경!
+        "model": "gpt-5-mini",  # 🚨 수정됨: 존재하는 모델 이름으로 변경!
         "messages": [
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": f"{region} 지역의 {taste} 맛이 나는 막걸리 추천해 주시오!"}
