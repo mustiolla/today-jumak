@@ -276,7 +276,7 @@ h1, h2 {
         resultBox.innerText = "주모가 곰곰이 생각하고 있소. 잠시만 기다려 주시오...";
 
         // Flask 서버로 데이터 보내기
-        fetch('api/recommend', {
+        fetch('/api/recommend', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
