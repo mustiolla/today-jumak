@@ -9,7 +9,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # 2. 프론트엔드(JS)가 찾아올 주소(라우터) 열어주기
-@app.route('/api/recommend', methods=['POST'])
+@app.route('/api/ai_jumo', methods=['POST'])
 def recommend():
     try:
         # 3. 사용자가 화면에서 입력한 데이터(지역, 맛) 받아오기
