@@ -130,9 +130,37 @@ p {
 h1, h2 {
     text-align: center;
 }
-    </style>
+
+html { scroll-behavior: smooth; }
+
+nav {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    padding: 15px 0;
+    border-bottom: 2px solid #eee;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 100;
+}
+nav a {
+    text-decoration: none;
+    color: #8b4513;
+    font-weight: bold;
+    font-size: 16px;
+    }
+    nav a:hover { color: #d97736; }
+
+</style>
 </head>
 <body>
+    <!-- 👇 새로 추가하는 네비게이션 바 -->
+    <nav>
+        <a href="#intro">주막 소개</a>
+        <a href="#ai-feature">AI 추천받기</a>
+        <a href="#report-form">비밀 장부</a>
+    </nav>
 
     <!-- [섹션 1] 서비스 소개 -->
     <section id="intro">
