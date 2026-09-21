@@ -79,70 +79,85 @@
             font-size: 15px;
         }
 
-        /* 장부 목록 카드 스타일 */
+        /* 장부 목록 한 줄 리스트 스타일 */
         .ledger-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .ledger-card {
             background-color: white;
             border: 1px solid #e8e2d8;
             border-radius: 12px;
-            padding: 18px 20px;
+            overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .ledger-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .card-header {
+        .ledger-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: #888;
+            padding: 14px 18px;
+            border-bottom: 1px solid #f2ece4;
+            transition: background-color 0.15s ease;
+            gap: 12px;
         }
 
-        .card-number {
+        .ledger-row:last-child {
+            border-bottom: none;
+        }
+
+        .ledger-row:hover {
+            background-color: #fcf9f4;
+        }
+
+        .row-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+
+        .row-num {
             font-weight: bold;
             color: #d97736;
+            font-size: 14px;
+            min-width: 32px;
         }
 
-        .card-content {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .row-drink, .row-food {
+            font-size: 15px;
+            color: #333;
+            white-space: nowrap;
         }
 
-        .item-row {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
-
-        .item-icon {
-            font-size: 18px;
-        }
-
-        .item-label {
-            font-size: 13px;
-            color: #777;
-            min-width: 45px;
-        }
-
-        .item-value {
-            font-size: 16px;
-            font-weight: 600;
+        .row-drink strong, .row-food strong {
             color: #222;
+        }
+
+        .row-divider {
+            color: #c4b5a5;
+            font-size: 13px;
+            margin: 0 2px;
+        }
+
+        .row-date {
+            font-size: 12px;
+            color: #999;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        @media (max-width: 480px) {
+            .ledger-row {
+                padding: 12px 14px;
+            }
+            .row-drink, .row-food {
+                font-size: 14px;
+            }
+            .row-date {
+                font-size: 11px;
+            }
         }
 
         /* 로딩 & 빈 상태 */
@@ -256,31 +271,22 @@
             ledgerStats.innerText = statsMsg || `총 ${count}개의 비법 조합이 주모의 장부에 기록되어 있소! 📜`;
 
             reports.forEach((item, index) => {
-                const card = document.createElement('li');
-                card.className = 'ledger-card';
+                const row = document.createElement('li');
+                row.className = 'ledger-row';
                 
                 const formattedDate = formatDate(item.createdAt);
                 const orderNum = count - index;
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="card-number">#제보 ${orderNum}</span>
-                        <span>${formattedDate}</span>
+                row.innerHTML = `
+                    <div class="row-left">
+                        <span class="row-num">#${orderNum}</span>
+                        <span class="row-drink">🍶 <strong>${escapeHtml(item.name)}</strong></span>
+                        <span class="row-divider">＋</span>
+                        <span class="row-food">🍽️ <strong>${escapeHtml(item.food)}</strong></span>
                     </div>
-                    <div class="card-content">
-                        <div class="item-row">
-                            <span class="item-icon">🍶</span>
-                            <span class="item-label">막걸리:</span>
-                            <span class="item-value">${escapeHtml(item.name)}</span>
-                        </div>
-                        <div class="item-row">
-                            <span class="item-icon">🍽️</span>
-                            <span class="item-label">안 주:</span>
-                            <span class="item-value">${escapeHtml(item.food)}</span>
-                        </div>
-                    </div>
+                    <span class="row-date">${formattedDate}</span>
                 `;
-                ledgerList.appendChild(card);
+                ledgerList.appendChild(row);
             });
         }
 
