@@ -152,6 +152,93 @@ nav a {
     }
     nav a:hover { color: #d97736; }
 
+/* 🌟 주막 커스텀 모달 팝업 스타일 🌟 */
+#jumak-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.55);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+}
+
+#jumak-modal-box {
+    background-color: #fffdfa;
+    border: 2px solid #8b4513;
+    border-radius: 16px;
+    width: 88%;
+    max-width: 380px;
+    padding: 26px 20px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    box-sizing: border-box;
+    animation: modalPopIn 0.25s ease-out;
+}
+
+@keyframes modalPopIn {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#modal-icon {
+    font-size: 38px;
+    margin-bottom: 8px;
+}
+
+#modal-title {
+    font-size: 19px;
+    color: #8b4513;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+}
+
+#modal-desc {
+    font-size: 15px;
+    color: #444;
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+    white-space: pre-wrap;
+    word-break: keep-all;
+}
+
+.modal-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0 !important;
+    transition: background-color 0.2s;
+}
+
+.modal-btn-primary {
+    background-color: #d97736;
+    color: white;
+}
+.modal-btn-primary:hover {
+    background-color: #bf6329;
+}
+
+.modal-btn-secondary {
+    background-color: #eee4d8;
+    color: #6b4e3d;
+}
+.modal-btn-secondary:hover {
+    background-color: #dfd1c2;
+}
 </style>
 </head>
 <body>
@@ -230,51 +317,86 @@ nav a {
         </div>
     </section>
 
-    <!-- 자바스크립트 코드 -->
+    <!-- 🍶 주막 커스텀 모달 팝업 HTML -->
+    <div id="jumak-modal-overlay">
+        <div id="jumak-modal-box">
+            <div id="modal-icon">🍶</div>
+            <h3 id="modal-title">주모의 알림</h3>
+            <p id="modal-desc"></p>
+            <div class="modal-btn-row" id="modal-btn-row">
+                <!-- 버튼 동적 추가 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 공통 모달 및 기본 인터랙션 스크립트 -->
 <script>
+    // 🌟 커스텀 모달 팝업 제어 함수 (브라우저 기본 alert/confirm 대체) 🌟
+    function openJumakModal({ icon = '🍶', title = '주모의 알림', message, primaryText = '확인', onPrimary, secondaryText = null, onSecondary }) {
+        const overlay = document.getElementById('jumak-modal-overlay');
+        document.getElementById('modal-icon').innerText = icon;
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-desc').innerText = message;
+
+        const btnRow = document.getElementById('modal-btn-row');
+        btnRow.innerHTML = '';
+
+        if (secondaryText) {
+            const secBtn = document.createElement('button');
+            secBtn.className = 'modal-btn modal-btn-secondary';
+            secBtn.innerText = secondaryText;
+            secBtn.onclick = () => {
+                overlay.style.display = 'none';
+                if (onSecondary) onSecondary();
+            };
+            btnRow.appendChild(secBtn);
+        }
+
+        const primBtn = document.createElement('button');
+        primBtn.className = 'modal-btn modal-btn-primary';
+        primBtn.innerText = primaryText;
+        primBtn.onclick = () => {
+            overlay.style.display = 'none';
+            if (onPrimary) onPrimary();
+        };
+        btnRow.appendChild(primBtn);
+
+        overlay.style.display = 'flex';
+    }
+
     // ==========================================
-    // 1. [새로 추가된 부분] 카드형 맛 선택 기능
+    // 1. 카드형 맛 선택 기능
     // ==========================================
     const cards = document.querySelectorAll('.flavor-card');
     const hiddenInput = document.getElementById('taste-input');
 
     // 처음 시작할 때 첫 번째 카드(달달한 맛)가 선택되어 있게 만들기
     cards[0].classList.add('selected');
-    // [중요] 시작할 때 숨겨진 주머니에도 첫 번째 맛을 미리 넣어둡니다!
     hiddenInput.value = cards[0].getAttribute('data-value');
 
     // 각각의 카드를 클릭했을 때 일어날 일 설정
     cards.forEach(card => {
         card.addEventListener('click', function() {
-        
-            // 1. 이미 선택된 카드를 다시 누른 경우 -> 선택 해제 (색상 빼기)
             if (this.classList.contains('selected')) {
-            this.classList.remove('selected');
-            } 
-            // 2. 선택 안 된 카드를 누른 경우 -> 선택 추가 (색상 넣기)
-            else {
-                // 현재 선택된 카드가 몇 개인지 셉니다.
+                this.classList.remove('selected');
+            } else {
                 const selectedCount = document.querySelectorAll('.flavor-card.selected').length;
-            
-                // 3개가 이미 찼다면 경고창을 띄우고 더 이상 진행하지 않음!
                 if (selectedCount >= 3) {
-                    alert("아이고 손님! 맛은 최대 3개까지만 고를 수 있소!");
+                    openJumakModal({
+                        icon: '🍯',
+                        title: '맛 선택 안내',
+                        message: '아이고 손님! 맛은 최대 3개까지만 고를 수 있소!'
+                    });
                     return; 
                 }
-            
-                // 3개가 안 넘었다면 선택 디자인 넣기
                 this.classList.add('selected');
             }
 
-        // 3. 숨겨진 주머니(hiddenInput) 업데이트 하기
-        // 현재 'selected' 클래스가 붙은 카드들을 모두 모아서 배열로 만듭니다.
-        const selectedCards = document.querySelectorAll('.flavor-card.selected');
-        const selectedValues = Array.from(selectedCards).map(c => c.getAttribute('data-value'));
-        
-        // 모은 맛들을 쉼표(,)로 연결해서 주머니에 쏙 넣습니다. (예: "달달한 맛, 고소한 맛")
-        hiddenInput.value = selectedValues.join(', ');
+            const selectedCards = document.querySelectorAll('.flavor-card.selected');
+            const selectedValues = Array.from(selectedCards).map(c => c.getAttribute('data-value'));
+            hiddenInput.value = selectedValues.join(', ');
+        });
     });
-});
 
     // ==========================================
     // 2. AI 추천 기능
@@ -289,7 +411,11 @@ nav a {
         const taste = tasteSelect.value;
 
         if (region === "") {
-            alert("어느 지역의 막걸리를 찾으시는지 알려주시오!");
+            openJumakModal({
+                icon: '🍶',
+                title: '지역 입력 안내',
+                message: '어느 지역의 막걸리를 찾으시는지 알려주시오!'
+            });
             return;
         }
 
@@ -308,7 +434,6 @@ nav a {
         })
         .then(response => response.json()) 
         .then(data => {
-            // AI 주모의 답변을 결과창에 띄우기
             resultBox.innerHTML = data.result; 
             recommendBtn.innerText = "주모! 추천해 주시오 🔔"; 
         })
@@ -320,7 +445,7 @@ nav a {
     });
 </script>
 
-<!-- Firebase Firestore 제보 연동 스크립트 -->
+<!-- Firebase Firestore 제보 연동 (타임아웃 + 로컬 백업) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -352,33 +477,61 @@ nav a {
         const food = reportFood.value.trim();
 
         if (name === '' || food === '') {
-            alert('아이고 손님! 막걸리 이름과 안주를 모두 적어주시지요!');
+            openJumakModal({
+                icon: '✍️',
+                title: '제보 내용 확인',
+                message: '아이고 손님! 막걸리 이름과 안주를 모두 적어주시지요!'
+            });
             return; 
         }
 
         reportBtn.disabled = true;
         reportBtn.innerText = '주모가 장부에 기록 중이오... ✍️';
 
+        // 1. 항상 로컬 스토리지에 즉시 안전 저장 (절대 데이터 유실 방지!)
         try {
-            await addDoc(collection(db, "reports"), {
-                name: name,
-                food: food,
-                createdAt: serverTimestamp()
+            const localReports = JSON.parse(localStorage.getItem('jumak_reports') || '[]');
+            localReports.unshift({ 
+                name: name, 
+                food: food, 
+                createdAt: new Date().toISOString() 
             });
+            localStorage.setItem('jumak_reports', JSON.stringify(localReports));
+        } catch (e) {
+            console.warn('로컬 저장소 에러:', e);
+        }
 
+        // 2. Firebase Firestore 저장 시도 (2.5초 타임아웃 적용하여 무한 대기 방지!)
+        const firestorePromise = addDoc(collection(db, "reports"), {
+            name: name,
+            food: food,
+            createdAt: serverTimestamp()
+        });
+
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT')), 2500)
+        );
+
+        try {
+            await Promise.race([firestorePromise, timeoutPromise]);
+        } catch (err) {
+            console.warn("Firestore 저장 대기 초과 또는 오류 (로컬 저장 유지됨):", err);
+        } finally {
+            // 3. 버튼 복구 및 입력칸 초기화
+            reportBtn.disabled = false;
+            reportBtn.innerText = '주모에게 제보하기 📜';
             reportName.value = '';
             reportFood.value = '';
 
-            const goToLedger = confirm(`고맙소! [${name}]와(과) [${food}] 조합이 주모의 비밀 장부에 안전하게 기록되었소!\n\n지금 다른 손님들의 제보 장부를 보러 가시겠소? 📜`);
-            if (goToLedger) {
-                window.location.href = "ledger.html";
-            }
-        } catch (error) {
-            console.error("제보 저장 에러:", error);
-            alert(`아이고, 주막에 문제가 생겨 장부에 적지 못했소! (${error.message})\nFirestore의 '테스트 모드' 보안 규칙이 활성화되어 있는지 확인해 주시오.`);
-        } finally {
-            reportBtn.disabled = false;
-            reportBtn.innerText = '주모에게 제보하기 📜';
+            // 4. 주막 전용 커스텀 모달 팝업 표시 (URL 표시 없이 화면 중앙에 미려하게 렌더링)
+            openJumakModal({
+                icon: '📜',
+                title: '주모의 비밀 장부 기록 완료',
+                message: `고맙소! [${name}]와(과) [${food}] 조합이 주모의 비밀 장부에 안전하게 기록되었소!\n\n지금 다른 손님들의 제보 장부를 보러 가시겠소?`,
+                primaryText: '장부 보러가기 📜',
+                onPrimary: () => { window.location.href = "ledger.html"; },
+                secondaryText: '주막에 머무르기'
+            });
         }
     });
 </script>

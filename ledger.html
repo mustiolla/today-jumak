@@ -210,7 +210,14 @@
         // 날짜 포맷 함수
         function formatDate(timestamp) {
             if (!timestamp) return '방금 전';
-            const date = timestamp.toDate();
+            let date;
+            if (typeof timestamp.toDate === 'function') {
+                date = timestamp.toDate();
+            } else if (typeof timestamp === 'string') {
+                date = new Date(timestamp);
+            } else {
+                date = new Date();
+            }
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
@@ -219,12 +226,21 @@
             return `${year}.${month}.${day} ${hours}:${minutes}`;
         }
 
-        // Firestore 실시간 데이터 구독 (최신 제보 순 정렬)
-        const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+        // 로컬 스토리지에 저장된 제보 먼저 즉시 렌더링 (대기 시간 0초)
+        function loadLocalReports() {
+            try {
+                const localReports = JSON.parse(localStorage.getItem('jumak_reports') || '[]');
+                if (localReports.length > 0) {
+                    renderCards(localReports, "현재 기기에 보관된 제보를 먼저 표시 중이오... ⏳");
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        }
 
-        onSnapshot(q, (snapshot) => {
+        function renderCards(reports, statsMsg) {
             ledgerList.innerHTML = '';
-            const count = snapshot.size;
+            const count = reports.length;
 
             if (count === 0) {
                 ledgerStats.innerText = "아직 등록된 제보가 없소. 첫 번째 주인공이 되어 보시오!";
@@ -237,15 +253,14 @@
                 return;
             }
 
-            ledgerStats.innerText = `총 ${count}개의 비법 조합이 주모의 장부에 기록되어 있소! 📜`;
+            ledgerStats.innerText = statsMsg || `총 ${count}개의 비법 조합이 주모의 장부에 기록되어 있소! 📜`;
 
-            snapshot.forEach((doc, index) => {
-                const data = doc.data();
+            reports.forEach((item, index) => {
                 const card = document.createElement('li');
                 card.className = 'ledger-card';
                 
-                const formattedDate = formatDate(data.createdAt);
-                const orderNum = count - index; // 최신순이지만 전체 제보 번호 부여
+                const formattedDate = formatDate(item.createdAt);
+                const orderNum = count - index;
 
                 card.innerHTML = `
                     <div class="card-header">
@@ -256,27 +271,56 @@
                         <div class="item-row">
                             <span class="item-icon">🍶</span>
                             <span class="item-label">막걸리:</span>
-                            <span class="item-value">${escapeHtml(data.name)}</span>
+                            <span class="item-value">${escapeHtml(item.name)}</span>
                         </div>
                         <div class="item-row">
                             <span class="item-icon">🍽️</span>
                             <span class="item-label">안 주:</span>
-                            <span class="item-value">${escapeHtml(data.food)}</span>
+                            <span class="item-value">${escapeHtml(item.food)}</span>
                         </div>
                     </div>
                 `;
                 ledgerList.appendChild(card);
             });
-        }, (error) => {
-            console.error("Firebase 데이터 읽기 에러:", error);
-            ledgerStats.innerText = "장부를 불러오는 중 문제가 발생했소.";
-            ledgerList.innerHTML = `
-                <li class="empty-box" style="color: #c0392b;">
-                    아이고, 장부를 읽을 수 없소! (${error.message})<br>
-                    Firestore의 '테스트 모드' 보안 규칙이 활성화되어 있는지 확인해 주시오.
-                </li>
-            `;
-        });
+        }
+
+        // 즉시 로컬 데이터 렌더링
+        loadLocalReports();
+
+        // Firestore 실시간 데이터 구독 (최신 제보 순 정렬)
+        try {
+            const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
+
+            onSnapshot(q, (snapshot) => {
+                const count = snapshot.size;
+                if (count > 0) {
+                    const firestoreReports = [];
+                    snapshot.forEach(doc => firestoreReports.push(doc.data()));
+                    renderCards(firestoreReports, `총 ${count}개의 비법 조합이 주모의 장부에 기록되어 있소! 📜`);
+                } else {
+                    // Firestore에 아직 없으면 로컬 확인
+                    const localReports = JSON.parse(localStorage.getItem('jumak_reports') || '[]');
+                    renderCards(localReports);
+                }
+            }, (error) => {
+                console.warn("Firestore 데이터 읽기 지연 또는 에러 (로컬 장부 사용):", error);
+                const localReports = JSON.parse(localStorage.getItem('jumak_reports') || '[]');
+                if (localReports.length > 0) {
+                    renderCards(localReports, `총 ${localReports.length}개의 제보가 장부에 기록되어 있소! (현재 기기 보관 중)`);
+                } else {
+                    ledgerStats.innerText = "장부를 불러오는 중 문제가 발생했소.";
+                    ledgerList.innerHTML = `
+                        <li class="empty-box" style="color: #c0392b;">
+                            아직 Firestore 온라인 DB가 생성되지 않았거나 권한이 없소.<br>
+                            Firebase 콘솔에서 [Firestore Database]를 '테스트 모드'로 생성했는지 확인해 주시오.
+                        </li>
+                    `;
+                }
+            });
+        } catch (e) {
+            console.warn(e);
+            loadLocalReports();
+        }
 
         // XSS 방지 함수
         function escapeHtml(text) {
