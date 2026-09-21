@@ -216,23 +216,21 @@ nav a {
     <section id="report-form">
         <h3>나만의 인생 막걸리 제보하기 ✍️</h3>
         <p>AI도 모르는 숨겨진 명주가 있다면 알려주세요!</p>
-        <input type="text" id="report-name" placeholder="막걸리 이름">
-        <input type="text" id="report-food" placeholder="어울리는 안주">
-        <button id="report-btn">제보하기</button>
-        <!-- 👇 부모 박스(div) 전체를 가운데 정렬합니다 -->
-        <div style="margin-top: 20px; text-align: center;">
-            <h3>📝 주모의 비밀 장부 (오늘의 제보)</h3>
-    
-            <!-- 👇 ul 태그를 '블록'으로 만들어서 가운데로 오게 하고, 내부 글자는 왼쪽(left) 정렬! -->
-            <ul id="report-list" style="list-style: none; padding: 0; display: inline-block; text-align: left;">
-                <!-- 자바스크립트가 여기에 리스트를 추가합니다 -->
-            </ul>
+        <input type="text" id="report-name" placeholder="막걸리 이름 (예: 지평 막걸리)">
+        <input type="text" id="report-food" placeholder="어울리는 안주 (예: 해물파전)">
+        <button id="report-btn">주모에게 제보하기 📜</button>
+
+        <!-- 👇 비밀 장부 페이지로 이동하는 배너 버튼 -->
+        <div style="margin-top: 25px; text-align: center; padding: 20px; background-color: #fdfbf7; border-radius: 12px; border: 1px solid #eee5d8;">
+            <h4 style="margin: 0 0 8px 0; color: #8b4513; font-size: 17px;">📖 주모의 비밀 장부</h4>
+            <p style="color: #666; font-size: 14px; margin: 0 0 15px 0;">전국의 손님들이 남겨주신 인생 막걸리 & 찰떡 안주 조합을 확인해 보세요!</p>
+            <a href="ledger.html" style="display: inline-block; padding: 12px 24px; background-color: #8b4513; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; transition: background 0.2s;">
+                📝 비밀 장부 보러가기 →
+            </a>
         </div>
-
-
     </section>
 
-        <!-- [여기서부터 추가!] 자바스크립트 코드 -->
+    <!-- 자바스크립트 코드 -->
 <script>
     // ==========================================
     // 1. [새로 추가된 부분] 카드형 맛 선택 기능
@@ -279,20 +277,17 @@ nav a {
 });
 
     // ==========================================
-    // 2. [기존 코드] AI 추천 기능 (수정 완료!)
+    // 2. AI 추천 기능
     // ==========================================
-    const recommendBtn = document.querySelector('button');
-    const regionInput = document.querySelector('input[type="text"]');
-    
-    // 🚨 수정된 부분: 이제 select가 아니라 id가 'taste-input'인 숨김 태그를 가져옵니다!
+    const recommendBtn = document.getElementById('recommend-btn');
+    const regionInput = document.getElementById('region-input');
     const tasteSelect = document.getElementById('taste-input'); 
     const resultBox = document.getElementById('result-box');
 
     recommendBtn.addEventListener('click', function() {
-        const region = regionInput.value;
+        const region = regionInput.value.trim();
         const taste = tasteSelect.value;
 
-        // 🚨 수정된 부분: 이제 맛은 무조건 하나가 선택되어 있으므로, 지역(region) 빈칸만 검사합니다.
         if (region === "") {
             alert("어느 지역의 막걸리를 찾으시는지 알려주시오!");
             return;
@@ -322,41 +317,70 @@ nav a {
             resultBox.innerText = "아이고, 주막에 불이 났소! (에러 발생)";
             recommendBtn.innerText = "주모! 추천해 주시오 🔔";
         });
-        
     });
-        
-        // --- 제보하기 버튼 기능 ---
-        const reportBtn = document.getElementById('report-btn');
-        const reportName = document.getElementById('report-name');
-        const reportFood = document.getElementById('report-food');
-        const reportList = document.getElementById('report-list'); // 👈 리스트 공간 찾기
+</script>
 
-        // 👇 1. 제보 횟수를 기억할 변수를 하나 만듭니다. (처음엔 0개)
-        let reportCount = 0; 
+<!-- Firebase Firestore 제보 연동 스크립트 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+        getFirestore, 
+        collection, 
+        addDoc, 
+        serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        reportBtn.addEventListener('click', function() {
-            if (reportName.value === '' || reportFood.value === '') {
-                alert('아이고 손님! 막걸리 이름과 안주를 모두 적어주시지요!');
-                return; 
-            }
+    // 사용자 Firebase 설정값
+    const firebaseConfig = {
+      apiKey: "AIzaSyB0QsShgvjWfhYl5uED3FaLIZFUuUMXMuw",
+      authDomain: "today-jumak.firebaseapp.com",
+      projectId: "today-jumak",
+      storageBucket: "today-jumak.firebasestorage.app",
+      messagingSenderId: "327900496880",
+      appId: "1:327900496880:web:e916ed0bdc6822308ed335"
+    };
 
-            alert(`고맙소! [${reportName.value}]와(과) [${reportFood.value}] 조합이라니, 주모가 잘 기억해 두겠소! 📝`);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-            // 👇 2. 제보가 성공할 때마다 숫자를 1씩 증가시킵니다.
-            reportCount++; 
+    const reportBtn = document.getElementById('report-btn');
+    const reportName = document.getElementById('report-name');
+    const reportFood = document.getElementById('report-food');
 
-            const newItem = document.createElement('li'); 
-    
-            // 👇 3. 글자 앞에 숫자가 들어가도록 수정합니다. (예: 1. 🍶 지평 + 🍽️ 순대)
-            newItem.innerText = `${reportCount}. 🍶 ${reportName.value} + 🍽️ ${reportFood.value}`; 
-    
-            newItem.style.marginBottom = "10px"; 
-            reportList.appendChild(newItem); 
+    reportBtn.addEventListener('click', async function() {
+        const name = reportName.value.trim();
+        const food = reportFood.value.trim();
+
+        if (name === '' || food === '') {
+            alert('아이고 손님! 막걸리 이름과 안주를 모두 적어주시지요!');
+            return; 
+        }
+
+        reportBtn.disabled = true;
+        reportBtn.innerText = '주모가 장부에 기록 중이오... ✍️';
+
+        try {
+            await addDoc(collection(db, "reports"), {
+                name: name,
+                food: food,
+                createdAt: serverTimestamp()
+            });
 
             reportName.value = '';
             reportFood.value = '';
-        });
 
+            const goToLedger = confirm(`고맙소! [${name}]와(과) [${food}] 조합이 주모의 비밀 장부에 안전하게 기록되었소!\n\n지금 다른 손님들의 제보 장부를 보러 가시겠소? 📜`);
+            if (goToLedger) {
+                window.location.href = "ledger.html";
+            }
+        } catch (error) {
+            console.error("제보 저장 에러:", error);
+            alert(`아이고, 주막에 문제가 생겨 장부에 적지 못했소! (${error.message})\nFirestore의 '테스트 모드' 보안 규칙이 활성화되어 있는지 확인해 주시오.`);
+        } finally {
+            reportBtn.disabled = false;
+            reportBtn.innerText = '주모에게 제보하기 📜';
+        }
+    });
 </script>
 
 </body>

@@ -91,7 +91,8 @@ flowchart TD
 
 ```text
 today-jumak/
-├── index.html             ← 메인 웹 페이지 (UI, 반응형 맛 카드, 제보 장부, 통신 로직)
+├── index.html             ← 메인 웹 페이지 (UI, 반응형 맛 카드, 제보 폼, 통신 로직)
+├── ledger.html            ← 주모의 비밀 장부 전용 페이지 (Firebase Firestore 연동 실시간 목록)
 ├── api/
 │   ├── ai_jumo.py         ← Vercel Serverless 메인 엔드포인트 및 AI 추천 로직
 │   └── index.py           ← 로컬 및 대체 Serverless 엔드포인트
@@ -106,7 +107,12 @@ today-jumak/
 
 ## 🏗️ 프로젝트 구조 및 설계 의도 (Architecture & Design)
 
-본 프로젝트는 코드의 가독성, 유지보수성, 그리고 향후 확장성을 고려하여 프론트엔드와 백엔드(Serverless API)를 명확히 분리하여 설계했습니다. 특히 Vercel 환경에서 동작하는 `api` 폴더 내부를 단일 파일이 아닌 두 개의 파일로 나눈 이유는 다음과 같습니다.
+본 프로젝트는 코드의 가독성, 유지보수성, 그리고 향후 확장성을 고려하여 프론트엔드와 백엔드(Serverless API)를 명확히 분리하여 설계했습니다.
+
+### 📂 다중 페이지 및 데이터 영속성 (Multi-Page & Cloud Database)
+- **메인 추천 페이지 (`index.html`)**: 막걸리 추천 및 간편 제보 폼에 집중하여 로딩 속도와 UX를 극대화했습니다.
+- **비밀 장부 전용 페이지 (`ledger.html`)**: 전국의 방문자들이 남긴 인생 막걸리와 안주 조합을 Firebase Firestore를 통해 실시간으로 불러와 표시합니다.
+- **Firebase Firestore 연동**: 브라우저 메모리에만 일시 저장되던 한계를 극복하고, 클라우드 NoSQL DB를 통해 어떤 기기에서 접속하든 제보 목록이 영구 보존되고 실시간 동기화됩니다.
 
 ### 📂 API 라우팅 및 관심사의 분리 (Separation of Concerns)
 
@@ -121,7 +127,8 @@ today-jumak/
 
 ## 🛠 기술 스택 (Tech Stack)
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla ES Modules)
+- **Database**: Firebase Firestore (클라우드 NoSQL 실시간 데이터베이스)
 - **Backend**: Python (Flask, Vercel Serverless Functions)
 - **AI**: OpenAI 호환 LLM API (`gpt-5-mini` / Copa Proxy Server)
 - **Deployment**: Vercel, GitHub
@@ -164,7 +171,6 @@ vercel dev
 
 ## 🚀 향후 개선 아이디어
 
-- **제보 장부 DB 연동**: 현재는 화면에만 임시로 추가되는 제보 장부를 Firebase나 Supabase 같은 가벼운 DB와 연동하여 영구적으로 저장되도록 개선.
 - **결과 공유 기능**: 추천받은 막걸리 조합을 카카오톡이나 인스타그램으로 바로 공유할 수 있는 버튼 추가.
 - **다크 모드 지원**: 밤에 술을 찾는 사용자들을 위해 눈이 편안한 다크 모드 UI 토글 기능 추가.
 - **지도에서 지역 선택 기능**: 지역을 직접 입력하지 않고, 지도에서 지역을 바로 선택할 수 있는 기능 추가.
@@ -173,3 +179,4 @@ vercel dev
 
 ## 🌐 배포 URL
 - **라이브 서비스 접속하기**: [https://today-jumak.vercel.app](https://today-jumak.vercel.app)
+- **주모의 비밀 장부 바로가기**: [https://today-jumak.vercel.app/ledger.html](https://today-jumak.vercel.app/ledger.html)
