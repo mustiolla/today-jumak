@@ -406,15 +406,35 @@ nav a {
     const tasteSelect = document.getElementById('taste-input'); 
     const resultBox = document.getElementById('result-box');
 
+    // 엔터키 입력 시 추천 버튼 클릭 연동
+    regionInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            recommendBtn.click();
+        }
+    });
+
     recommendBtn.addEventListener('click', function() {
         const region = regionInput.value.trim();
         const taste = tasteSelect.value;
 
+        // 1. 빈 값 검사
         if (region === "") {
             openJumakModal({
                 icon: '🍶',
                 title: '지역 입력 안내',
-                message: '어느 지역의 막걸리를 찾으시는지 알려주시오!'
+                message: '어느 지역의 막걸리를 찾으시는지 알려주시오!\n(예: 서울, 속초, 제주도)'
+            });
+            return;
+        }
+
+        // 2. 한글 지역명 유효성 검사 (한글 완성형 및 공백 2~15자)
+        // 영문(예: vjd), 숫자, 특수기호, 자모 단독(ㄱ-ㅎ, ㅏ-ㅣ) 또는 1글자 입력 차단
+        const koreanRegionRegex = /^[가-힣\s]{2,15}$/;
+        if (!koreanRegionRegex.test(region)) {
+            openJumakModal({
+                icon: '⚠️',
+                title: '지역 입력 오류',
+                message: '아이고 손님! 지역명이 올바르지 않소.\n한글 2글자 이상으로 올바른 지역명을 입력해 주시오!\n(예: 서울, 속초, 포천, 제주 등)'
             });
             return;
         }
@@ -432,15 +452,39 @@ nav a {
             },
             body: JSON.stringify({ region: region, taste: taste }) 
         })
-        .then(response => response.json()) 
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.result || '주막에 일시적인 문제가 생겼소.');
+            }
+            return data;
+        })
         .then(data => {
+            // 실존하지 않는 지역 안내 응답 감지 (금시초문이오 등)
+            if (data.result && (data.result.includes('금시초문이오') || data.result.includes('실존하는 지역'))) {
+                resultBox.style.display = "none";
+                recommendBtn.innerText = "주모! 추천해 주시오 🛎️"; 
+                openJumakModal({
+                    icon: '🗺️',
+                    title: '지역 확인 안내',
+                    message: data.result.replace(/<[^>]*>?/gm, '')
+                });
+                return;
+            }
+
             resultBox.innerHTML = data.result; 
-            recommendBtn.innerText = "주모! 추천해 주시오 🔔"; 
+            resultBox.style.display = "block";
+            recommendBtn.innerText = "주모! 추천해 주시오 🛎️"; 
         })
         .catch(error => {
             console.error('Error:', error);
-            resultBox.innerText = "아이고, 주막에 불이 났소! (에러 발생)";
-            recommendBtn.innerText = "주모! 추천해 주시오 🔔";
+            resultBox.style.display = "none";
+            recommendBtn.innerText = "주모! 추천해 주시오 🛎️";
+            openJumakModal({
+                icon: '⚠️',
+                title: '지역 입력 오류',
+                message: error.message || '아이고, 주막에 불이 났소! (에러 발생)'
+            });
         });
     });
 </script>

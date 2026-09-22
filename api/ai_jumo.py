@@ -13,12 +13,20 @@ app = Flask(__name__)
 def recommend():
     try:
         # 3. 사용자가 화면에서 입력한 데이터(지역, 맛) 받아오기
-        user_data = request.get_json()
-        region = user_data.get('region', '전국')
-        taste = user_data.get('taste', '맛있는')
+        user_data = request.get_json() or {}
+        region = str(user_data.get('region', '')).strip()
+        taste = str(user_data.get('taste', '맛있는')).strip()
 
-        # 4. AI 주모 프롬프트
-        system_instruction = """
+        # 4. 입력값 유효성 검사 (빈 값 또는 한글 2~15자가 아닌 경우 400 차단)
+        import re
+        if not region:
+            return jsonify({"error": "어느 지역의 막걸리를 찾으시는지 알려주시오!"}), 400
+
+        if not re.match(r'^[가-힣\s]{2,15}$', region):
+            return jsonify({"error": "아이고 손님! 지역명이 올바르지 않소. 한글 2글자 이상으로 올바른 지역명을 입력해 주시오! (예: 서울, 속초, 제주도)"}), 400
+
+        # 5. AI 주모 프롬프트
+        system_instruction = f"""
 당신은 한국의 전통 주막을 운영하는 친근하고 호탕한 '주모'입니다.
 사용자가 원하는 지역과 맛을 알려주면, 고민하거나 되묻지 말고 즉시 아래의 [절대 지켜야 할 규칙]과 [출력 예시]에 맞춰 4개 문단 형식으로 답변을 내어주세요.
 
@@ -31,6 +39,8 @@ def recommend():
 6. 말투: 친근하고 구수한 사극 주모 말투('~했소', '~구려', '~추천하겠소', '~어울리오', '~안성맞춤이오', '~제격이오', '아이고 손님!')를 일관되게 사용하세요.
 7. HTML 태그 필수: 추천하는 막걸리 이름과 안주 이름은 반드시 <b>이름</b> 태그로 감싸서 강조하세요. (마크다운 ** 대신 반드시 <b>태그 사용)
 8. 문단 구분: 반드시 총 4개의 문단으로 구성하며, 각 문단 사이에는 빈 줄(줄바꿈 2번)을 넣으세요.
+9. 🚫 실존하지 않는 지역 예외 처리: 만약 사용자가 입력한 지역('{region}')이 대한민국에 실제로 존재하지 않는 지역(예: 허구의 지명, 사물 이름, 장난스런 단어 등)인 경우, 억지로 가상의 술을 추천하거나 엉뚱한 지역의 술을 추천하지 말고, 아래 예시처럼 주모 말투로 친절하게 안내하세요.
+   예시: "아이고 손님! 주모가 전국 팔도를 다 다녀봤지만 '{region}'(이)라는 고을은 금시초문이오. 서울, 포천, 전주, 속초처럼 대한민국에 실존하는 지역을 다시 알려주시면 기가 막힌 막걸리를 찾아내겠소! 손님, 어느 고을 막걸리를 원하시오?"
 
 [출력 예시 - 반드시 아래의 4개 문단 구조와 줄바꿈, 어투 흐름을 그대로 따르세요]
 아이고 손님! 속초 풍미를 품은 달달하고 탄산이 도드라지며 담백한 맛을 찾으신다구려, 주모가 바로 한 가지 고르고 안주도 함께 내오겠소.
@@ -50,7 +60,7 @@ def recommend():
             "Content-Type": "application/json"
         }
 
-        # 🚨 주의: gpt-5-mini는 아직 없는 모델이라 에러가 날 수 있습니다. gpt-4o-mini로 수정했습니다!
+        # 🚨 주의: gpt-5-mini 모델 호출
         data = {
             "model": "gpt-5-mini", 
             "messages": [
@@ -59,21 +69,21 @@ def recommend():
             ]
         }
 
-        # 5. 교육장 서버로 요청 보내기
+        # 6. 교육장 서버로 요청 보내기
         response = requests.post(url, headers=headers, json=data)
 
-        # 6. 결과 확인 및 프론트엔드로 돌려보내기
+        # 7. 결과 확인 및 프론트엔드로 돌려보내기
         if response.status_code == 200:
             result_data = response.json()
             ai_message = result_data["choices"][0]["message"]["content"]
             
-            # HTML 화면에 띄울 수 있도록 JSON 형태로 변환해서 반환 (매우 중요!)
+            # HTML 화면에 띄울 수 있도록 JSON 형태로 변환해서 반환
             return jsonify({"result": ai_message})
         else:
-            return jsonify({"result": f"주모가 파업했소. (에러코드: {response.status_code})"}), 500
+            return jsonify({"error": f"주모가 파업했소. (에러코드: {response.status_code})"}), 500
 
     except Exception as e:
-        return jsonify({"result": f"주막에 불이 났소! ({str(e)})"}), 500
+        return jsonify({"error": f"주막에 불이 났소! ({str(e)})"}), 500
 
 # 로컬 테스트용 코드 (Vercel에서는 무시됨)
 if __name__ == '__main__':
