@@ -21,13 +21,13 @@ AI 기반 서비스는 일반적인 웹 서비스와 달리 **외부 LLM(대형 
 
 ```mermaid
 flowchart TD
-    Req["사용자 추천 요청<br/>(지역: 속초, 맛: 달달함)"] --> L1{"L1: 브라우저 캐시<br/>(SessionStorage)"}
-    L1 -->|HIT (소요: 0ms)| Res1["즉시 결과 렌더링<br/>(비용: $0)"]
-    L1 -->|MISS| L2{"L2: Vercel Edge 캐시<br/>(CDN / SWR)"}
-    L2 -->|HIT (소요: ~30ms)| Res2["Edge 캐시 결과 반환<br/>(비용: $0)"]
+    Req["사용자 추천 요청<br/>(지역: 속초, 맛: 달달함)"] --> L1["L1: 브라우저 캐시<br/>(SessionStorage)"]
+    L1 -->|HIT| Res1["즉시 결과 렌더링<br/>(소요: 0ms / 비용: 0원)"]
+    L1 -->|MISS| L2["L2: Vercel Edge 캐시<br/>(CDN / SWR)"]
+    L2 -->|HIT| Res2["Edge 캐시 결과 반환<br/>(소요: ~30ms / 비용: 0원)"]
     L2 -->|MISS| L3["L3: Python Serverless<br/>& OpenAI LLM 호출"]
-    L3 -->|소요: ~1.8s| Save["L1, L2 캐시 동시 갱신"]
-    Save --> Res3["최종 결과 반환"]
+    L3 -->|생성 완료| Save["L1, L2 캐시 동시 갱신<br/>(소요: ~1.8초)"]
+    Save --> Res3["최종 추천 결과 표시"]
 ```
 
 ### 2.1 L1 브라우저 클라이언트 캐시 (SessionStorage)
