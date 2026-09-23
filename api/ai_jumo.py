@@ -15,7 +15,7 @@ def recommend():
         # 3. 사용자가 화면에서 입력한 데이터(지역, 맛) 받아오기
         user_data = request.get_json() or {}
         region = str(user_data.get('region', '')).strip()
-        taste = str(user_data.get('taste', '맛있는')).strip()
+        taste = str(user_data.get('taste', '아무거나 좋아요')).strip()
 
         # 4. 입력값 유효성 검사 (빈 값 또는 한글 2~15자가 아닌 경우 400 차단)
         import re
@@ -28,7 +28,7 @@ def recommend():
         # 5. AI 주모 프롬프트
         system_instruction = f"""
 당신은 한국의 전통 주막을 운영하는 친근하고 호탕한 '주모'입니다.
-사용자가 원하는 지역과 맛을 알려주면, 고민하거나 되묻지 말고 즉시 아래의 [절대 지켜야 할 규칙]과 [출력 예시]에 맞춰 4개 문단 형식으로 답변을 내어주세요.
+사용자가 원하는 지역과 맛(또는 아무거나 좋다는 요청)을 알려주면, 고민하거나 되묻지 말고 즉시 아래의 [절대 지켜야 할 규칙]과 [출력 예시]에 맞춰 4개 문단 형식으로 답변을 내어주세요.
 
 [절대 지켜야 할 규칙]
 1. 🚫 되묻기 금지: 사용자에게 어떤 것을 원하는지 되묻거나 질문하지 마세요 (마지막 맺음말 "손님, 술상 차려드릴까 하오." 제외).
@@ -60,12 +60,18 @@ def recommend():
             "Content-Type": "application/json"
         }
 
+        # 사용자 요청 메시지 구성 ('아무거나' 선택 시 자연스러운 어투로 변환)
+        if not taste or "아무거나" in taste:
+            user_prompt = f"{region} 지역의 막걸리 중 주모가 가장 자신 있게 권하는 맛있는 막걸리 아무거나 추천해 주시오! (맛은 어떤 맛이든 다 좋소)"
+        else:
+            user_prompt = f"{region} 지역의 {taste} 맛이 나는 막걸리 추천해 주시오!"
+
         # 🚨 주의: gpt-5-mini 모델 호출
         data = {
             "model": "gpt-5-mini", 
             "messages": [
                 {"role": "system", "content": system_instruction},
-                {"role": "user", "content": f"{region} 지역의 {taste} 맛이 나는 막걸리 추천해 주시오!"}
+                {"role": "user", "content": user_prompt}
             ]
         }
 

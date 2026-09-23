@@ -281,10 +281,10 @@ nav a {
                 <div class="emoji">🌰</div>
                 <div class="text">담백한 쌀과<br>누룩의 풍미</div>
             </div>
-            <!-- 👇 3. 새로운 맛 추가! -->
-            <div class="flavor-card" data-value="크리미한 맛">
-                <div class="emoji">🍦</div>
-                <div class="text">걸쭉하고<br>크리미한 맛</div>
+            <!-- 👇 3. 아무거나 좋아요 카드 -->
+            <div class="flavor-card" data-value="아무거나 좋아요">
+                <div class="emoji">🎯</div>
+                <div class="text">아무거나<br>좋아요</div>
             </div>
         </div>
 
@@ -377,24 +377,38 @@ nav a {
     // 각각의 카드를 클릭했을 때 일어날 일 설정
     cards.forEach(card => {
         card.addEventListener('click', function() {
+            const isRandom = this.getAttribute('data-value') === '아무거나 좋아요';
+
             if (this.classList.contains('selected')) {
                 this.classList.remove('selected');
             } else {
-                const selectedCount = document.querySelectorAll('.flavor-card.selected').length;
-                if (selectedCount >= 3) {
-                    openJumakModal({
-                        icon: '🍯',
-                        title: '맛 선택 안내',
-                        message: '아이고 손님! 맛은 최대 3개까지만 고를 수 있소!'
+                if (isRandom) {
+                    // '아무거나 좋아요'를 선택하면 다른 모든 맛 선택은 해제
+                    cards.forEach(c => {
+                        if (c !== this) c.classList.remove('selected');
                     });
-                    return; 
+                    this.classList.add('selected');
+                } else {
+                    // 특정 맛을 선택하면 '아무거나 좋아요'는 해제
+                    const randomCard = document.querySelector('.flavor-card[data-value="아무거나 좋아요"]');
+                    if (randomCard) randomCard.classList.remove('selected');
+
+                    const selectedCount = document.querySelectorAll('.flavor-card.selected').length;
+                    if (selectedCount >= 3) {
+                        openJumakModal({
+                            icon: '🍯',
+                            title: '맛 선택 안내',
+                            message: '아이고 손님! 맛은 최대 3개까지만 고를 수 있소!'
+                        });
+                        return; 
+                    }
+                    this.classList.add('selected');
                 }
-                this.classList.add('selected');
             }
 
             const selectedCards = document.querySelectorAll('.flavor-card.selected');
             const selectedValues = Array.from(selectedCards).map(c => c.getAttribute('data-value'));
-            hiddenInput.value = selectedValues.join(', ');
+            hiddenInput.value = selectedValues.length > 0 ? selectedValues.join(', ') : '아무거나 좋아요';
         });
     });
 
@@ -415,7 +429,7 @@ nav a {
 
     recommendBtn.addEventListener('click', function() {
         const region = regionInput.value.trim();
-        const taste = tasteSelect.value;
+        const taste = tasteSelect.value.trim() || '아무거나 좋아요';
 
         // 1. 빈 값 검사
         if (region === "") {
